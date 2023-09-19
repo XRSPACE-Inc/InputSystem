@@ -40,13 +40,13 @@ The **Input Actions Settings window** allows you to view and edit the default in
 
 ![The Input Actions Settings window](Images/ProjectSettingsInputActionsSimpleShot.png)
 
-## The dynamic `InputSettings` class
+## The dynamic `InputActions` class
 
-The names of the Action Maps and Actions defined in the Input Actions Settings window directly control the API members that are available on the `InputSettings` class.
+The names of the Action Maps and Actions defined in the Input Actions Settings window directly control the API members that are available on the `InputActions` class.
 
-When you add, modify, or delete Action Map names, or Action names, those API members are added, modified, or deleted from the `InputSettings` class.
+When you add, modify, or delete Action Map names, or Action names, those API members are added, modified, or deleted from the `InputActions` class.
 
-For example, if you define a new Action in the *"Player"* action map called *"Drop"*, the API `InputSettings.player.drop` becomes available.
+For example, if you define a new Action in the *"Player"* action map called *"Drop"*, the API `InputActions.player.drop` becomes available.
 
 Similarly, if you rename an Action or Action Map whose corresponding API you have used in your code, you must update your code to match the new name.
 

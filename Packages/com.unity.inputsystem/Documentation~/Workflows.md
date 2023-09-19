@@ -4,18 +4,21 @@ uid: input-system-workflows
 
 # Input System Workflows
 
-There are multiple ways to use the Input System, and the workflow that’s right for you depends on how quickly you want to get up and running, how flexible you want your input code to be, and whether you prefer to set things up in the Unity Editor, or in code.
+There are multiple ways to use the Input System, however the primary and recommended workflow is to use the **Input Actions** panel in the **Project Settings window** to configure your project-wide Actions and Bindings, and then read the values for those actions in your code using the `InputActions` class.
 
-To understand the different workflows so that you can choose between them, it’s important to first understand the [concepts and terms](Concepts.html) used to describe them.
+There are other workflows which can suit more unusual situations, for example you can take a more direct aproach by omitting the Actions and Bindings altogether and instead **directly read the state of controls** on your device.
 
-Each of the four main workflows described below offers different levels of flexibility and abstraction. They are listed in an order of abstraction from least to most, where each adds a layer of abstraction, and therefore flexibility, to the previous.
+Or you can use the **PlayerInput component** together with Actions and Bindings which adds a further layer of abstraction, allowing you to connect actions to your event handlers without requiring any intermediate code.
+
+The diagrams on this page show the flow of input from the device to end result in your code, to help you understand the steps involved.
+
+
 
 |   |   |
 |---|---|
-|[**Directly Reading Device States**](Workflow-Direct.html)<br/><br/>Your script explicitly refers to device controls and reads the values directly.<br/><br/>Can be the fastest way to set up input for one device, but it is the least flexible workflow. [Read more](Workflow-Direct.html) |![image alt text](Images/Workflow-Direct.svg)|
-|[**Using Embedded Actions**](Workflow-Embedded.html)<br/><br/>Your script uses the InputAction class directly. The actions display in your script’s inspector, and allow you to configure them in the editor. [Read more](Workflow-Embedded.html)|![image alt text](Images/Workflow-Embedded.svg)|
-|[**Using an Actions Asset**](Workflow-ActionsAsset.html)<br/><br/>Your script does not define actions directly. Instead your script references an Input Actions asset which defines your actions. The Input Actions window provides a UI to define, configure, and organize all your Actions into useful groupings. [Read more](Workflow-ActionsAsset.html)|![image alt text](Images/Workflow-ActionsAsset.svg)|
-|[**Using an Actions Asset and a PlayerInput component**](Workflow-PlayerInput.html)<br/><br/>In addition to using an Actions Asset, the PlayerInput component provides a UI in the inspector to connect actions to event handlers in your script, removing the need for any intermediary code between the Input System and your Action Methods. [Read more](Workflow-PlayerInput.html)|![image alt text](Images/Workflow-PlayerInput.svg)|
+|[**Read project-wide actions using InputActions class**](Workflow-ProjectWideActions.html)<br/>The primary and recommended workflow for most situations. Use the Input Settings window to configure your project-wide Actions and Bindings, then read the values for those actions in your code using the `InputActions` class.<br/><br/>[Read more](Workflow-ActionsAsset.html)|(Image Removed)|
+|[**Directly Reading Device States**](Workflow-Direct.html)<br/>A simplified, script-only approach which is less abstracted, but also less flexible. Your script explicitly refers to specific device controls and reads the values directly. Suitable for fast prototyping, or single fixed platform scenarios.<br/><br/>[Read more](Workflow-Direct.html) |![image alt text](Images/Workflow-Direct.svg)|
+|[**Using an Actions Asset and a PlayerInput component**](Workflow-PlayerInput.html)<br/><br/>An extra layer of abstraction on top of Actions and Bindings configuration. In addition to using an Actions, you can place the PlayerInput component on to GameObjects to connect actions to event handlers, removing the need for any intermediary code between the Input System and your input event handler code.<br/><br/>Suitable for situations where you want to reduce the amount of code required to an absolute minimum, such as **asset store** packages.<br/><br/>[Read more](Workflow-PlayerInput.html)|(Image Removed)|
 
 >[!Note]
 >Because the Input System has multiple workflows, the code samples used throughout this documentation also vary, demonstrating techniques using various workflows. For example, some code samples may use embedded actions, and others might use an action asset.
