@@ -39,19 +39,19 @@ Without Actions, the meaning of your input and the device controls end up hard-c
 ```CSharp
     // without Actions, you end up hard-coding device controls
     // like this: (not always desirable)
-    moveVector = gamepad.rightStick.ReadValue<Vector2>();
+    var moveVector = gamepad.rightStick.ReadValue<Vector2>();
 ```
 
-When you use Actions, you do not need to refer to specific devices or their controls in your code. Instead the Action's binding defines which controls on which device is used to perform the action, and your code becomes simpler. In this example, `moveAction` would contain a reference to an Action, defined either in code, or in an Action Asset:
+If you particularly want to avoid using Actions, you can read more about [directly reading devices from script](Workflow-Direct) here.
+
+When you use Actions, you do not need to refer to specific devices or their controls in your code. Instead the Action's binding defines which controls on which device is used to perform the action, and your code becomes simpler:
 
 ```CSharp
     // using Actions removes the need to refer directly to device controls
-    moveAmount = moveAction.ReadValue<Vector2>();
+    var moveVector = InputActions.player.move.value;
 ```
 
-
-
-You can then use the visual editor (either in the inspector, or in the Actions Asset editor) to establish the mapping between the Action and one or more device controls. For example in this screenshot, the "move" action is bound to the left gamepad stick, and the keyboard's arrow keys.
+You can then use the [Input Actions editor](InputActionsEditor) to establish the mapping between the Action and one or more device controls. For example in this screenshot, the "Move" action is bound to the left gamepad stick, and the keyboard's arrow keys.
 
 ![Actions Bindings](Images/ActionsBinding.png)
 
@@ -63,38 +63,46 @@ This also makes it easier to let players [customize bindings at runtime](ActionB
 
 ## Overview
 
-There are three key classes for Actions in the API:
+When scripting with the Input System, there are number of key classes you can use, which are described here:
 
 |Class|Description|
 |-----|-----------|
-|`InputActionAsset`|An Asset that contains one or more Action Maps and, optionally, a sequence of Control Schemes. For more information on how to create, edit, and work with these Assets, see [Action Assets](ActionAssets.md).|
-|`InputActionMap`|A named collection of Actions.|
-|`InputAction`|A named Action that triggers callbacks in response to input.|
-
-Actions use `InputBinding` to refer to the inputs they collect. For more information about Bindings and how to use them, see [Action Bindings](ActionBindings.md).
+|[`InputActions`](../api/UnityEngine.InputSystem.InputActions.html)|A class whose API dynamically updates to reflect the Action Maps, Actions, and properties that are currently configured in the [Input Actions editor](InputActionsEditor). In many cases this is the only class you need to read input for typical games or apps.|
+|[`InputActionMap`](../api/UnityEngine.InputSystem.InputActionMap.html)|A named collection of Actions. The API equivalent to an entry in the "Action Maps" column of the [Input Actions editor](InputActionsEditor).|
+|[`InputAction`](../api/UnityEngine.InputSystem.InputAction.html)|A named Action that can return the current value of the controls that it is bound to, or can trigger callbacks in response to input. The API equivalent to an entry in the "Actions" column of the [Input Actions editor](InputActionsEditor).|
+|[`InputBinding`](../api/UnityEngine.InputSystem.InputBinding.html)|The relationship between an Action and the specific device controls for which it receives input. For more information about Bindings and how to use them, see [Action Bindings](ActionBindings.md).|
 
 Each Action has a name ([`InputAction.name`](../api/UnityEngine.InputSystem.InputAction.html#UnityEngine_InputSystem_InputAction_name)), which must be unique within the Action Map that the Action belongs to, if any (see [`InputAction.actionMap`](../api/UnityEngine.InputSystem.InputAction.html#UnityEngine_InputSystem_InputAction_actionMap)). Each Action also has a unique ID ([`InputAction.id`](../api/UnityEngine.InputSystem.InputAction.html#UnityEngine_InputSystem_InputAction_id)), which you can use to reference the Action. The ID remains the same even if you rename the Action.
 
-Each Action Map has a name ([`InputActionMap.name`](../api/UnityEngine.InputSystem.InputActionMap.html#UnityEngine_InputSystem_InputActionMap_name)), which must be unique within the Action Asset that the Action Map belongs to, if any (see [`InputActionMap.asset`](../api/UnityEngine.InputSystem.InputActionMap.html#UnityEngine_InputSystem_InputActionMap_asset)). Each Action Map also has a unique ID ([`InputActionMap.id`](../api/UnityEngine.InputSystem.InputActionMap.html#UnityEngine_InputSystem_InputActionMap_id)), which you can use to reference the Action Map. The ID remains the same even if you rename the Action Map.
+Each Action Map has a name ([`InputActionMap.name`](../api/UnityEngine.InputSystem.InputActionMap.html#UnityEngine_InputSystem_InputActionMap_name)), which must also be unique with respect to the othe Action Maps present, if any. Each Action Map also has a unique ID ([`InputActionMap.id`](../api/UnityEngine.InputSystem.InputActionMap.html#UnityEngine_InputSystem_InputActionMap_id)), which you can use to reference the Action Map. The ID remains the same even if you rename the Action Map.
 
 ## Creating Actions
 
 You can create Actions in any of the following ways:
 
-- Use the dedicated editor for [Input Action Assets](ActionAssets.md).
-- [Embed them](Workflow-Embedded.md) in MonoBehaviour components, then set up bindings in the Inspector.
-- Manually load them from JSON.
-- Create them entirely in code, including setting up the bindings.
+- You can use the [Input Actions editor](InputActionsEditor) in the Project Settings window (this is the primary recommended workflow). Actions and ActionMaps created here are automatically added to the InputActions class API.
+- You can create [Input Actions assets](ActionAssets) which define a set of action data similar to that defined in Project Settings, but is instead stored in a self-contained asset (this is an outdated workflow but is still supported).
+- You can [declare Action fields](Workflow-Embedded.md) in MonoBehaviour scripts, then set up bindings in the Inspector for that MonoBehaviour.
+- You can manually load Actions from JSON data.
+- You can create Actions entirely in code, including setting up the bindings.
 
 ### Creating Actions using the Action editor
 
-For information on how to create and edit Input Action Assets in the dedicated editor, see [Action Assets](ActionAssets.md). This is the recommended workflow if you want to organise all your input actions and bindings together into a single Asset, which is often the case for many types of game or app.
+For information on how to create and edit Input Actions in the editor, see the [Input Actions editor](InputActionsEditor). This is the recommended workflow if you want to organise all your input actions and bindings in one place, which applies across the whole of your project. This often the case for most types of game or app.
 
-![Action Editor Window](Images/MyGameActions.png)
+![Action Editor Window](Images/ProjectSettingsInputActions.png)
+*The Input Actions Editor in the Project Settings window*
 
-### Creating Actions by embedding them in MonoBehaviours
+### Creating Actions in Input Action Assets
 
-As an alternative to using an Action Asset, You can embed individual [Input Action](../api/UnityEngine.InputSystem.InputAction.html) and [Input Action Maps](../api/UnityEngine.InputSystem.InputActionMap.html) as fields directly inside `MonoBehaviour` components, like this:
+You can create actions that are stored in an Asset instead of in your Project Settings, by creating an [Action Asset](ActionAssets). This workflow used to be the main workflow in previous versions of the Input System package, but has been superceded by the [Input Actions editor](InputActionsEditor) in the Project Settings window, which provides a simpler workflow.
+
+However it is still possible to create [Action Assets](ActionAssets) which contain a complete set of Action Maps, Actions and Bindings, and use those instead of the project-wide Actions that are defined in the Project Settings window.
+
+
+### Creating Actions by declaring them in MonoBehaviours
+
+As an alternative workflow, you can declare individual [Input Action](../api/UnityEngine.InputSystem.InputAction.html) and [Input Action Maps](../api/UnityEngine.InputSystem.InputActionMap.html) as fields directly inside `MonoBehaviour` components, like this:
 
 ```CSharp
 using UnityEngine;
@@ -107,19 +115,17 @@ public class ExampleScript : MonoBehaviour
 }
 ```
 
-The result is similar to using an Action Asset, except the Actions are defined in the GameObject's properties and saved as Scene or Prefab data, instead of in a dedicated Asset.
+The result is similar to using an Actions defined in the Input Actions editor, except the Actions are defined in the GameObject's properties and saved as Scene or Prefab data, instead of in a dedicated Asset.
 
 When you embed actions in a MonoBehaviour and assign that MonoBehaviour to a GameObject, the GameObject's Inspector window displays an interface similar to the Actions Asset window, which allows you to set up the bindings for those actions. For example:
 
 ![MyBehavior Inspector](Images/Workflow-EmbeddedActionsInspector.png)
 
-The visual editors work similarly to the [Action Asset editor](ActionAssets.md).
+The visual editors work similarly to the [Input Actions editor](InputActionsEditor).
 
 * To add or remove Actions or Bindings, click the Add (+) or Remove (-) icon in the header.
 * To edit Bindings, double-click them.<br>
-  ![InputBinding Inspector](Images/InputBindingInspector.png)
 * To edit Actions, double-click them in an Action Map, or click the gear icon on individual Action properties.<br>
-  ![InputAction Inspector](Images/InputActionInspector.png)
 * You can also right-click entries to bring up a context menu, and you can drag them. Hold the Alt key and drag an entry to duplicate it.
 
 You must manually [enable and disable](#using-actions) Actions and Action Maps that are embedded in MonoBehaviour components.
@@ -212,9 +218,17 @@ void Start()
 }
 ```
 
-## Using Actions
+Actions defined in the [Input Actions editor](InputActionsEditor) are automatically added to the InputActions class as API, and are ready to use immediately.
 
-For an Action to do something, you must first enable it. You can do this either by individually enabling Actions, or by enabling them in bulk through Action Maps. The second method is more efficient in all scenarios.
+For example, for an Action called "Move" defined in an Action Map called "Player", you can read its value from your code like this:
+
+```
+    var moveVector = InputActions.player.move.value;
+```
+
+## Enabling actions
+
+Actions defined in the [Input Actions editor](InputActionsEditor) are enabled by default and ready to use. For actions defined elsewhere, such as in code or in Action Assets, they begin in a disabled state, and you must enable them before they will respond to input. You can enable them individually, or as a group by enabling the Action Map which contains them.
 
 ```CSharp
 // Enable a single action.
@@ -230,9 +244,11 @@ You can't change certain aspects of the configuration, such Action Bindings, whi
 
 While enabled, an Action actively monitors the [Control(s)](Controls.md) it's bound to. If a bound Control changes state, the Action processes the change. If the Control's change represents an [Interaction](Interactions.md) change, the Action creates a response. All of this happens during the Input System update logic. Depending on the [update mode](Settings.md#update-mode) selected in the input settings, this happens once every frame, once every fixed update, or manually if updates are set to manual.
 
-### Responding to Actions
+## Responding to Actions using callbacks
 
-An Action doesn't represent an actual response to input by itself. Instead, an Action informs your code that a certain type of input has occurred. Your code then responds to this information.
+You can choose to read the value reported by Actions, or to respond to input from your Actions with callbacks.
+
+When you set up callbacks for your Action, the Action informs your code that a certain type of input has occurred, and your code can then respond accordingly.
 
 There are several ways to do this:
 
