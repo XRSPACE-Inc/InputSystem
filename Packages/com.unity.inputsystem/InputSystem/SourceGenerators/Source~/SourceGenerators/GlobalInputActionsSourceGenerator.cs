@@ -10,42 +10,68 @@ using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
+internal class PathAndContent
+{
+    public string path;
+    public string content;
+
+    public PathAndContent(string path, string content)
+    {
+        this.path = path;
+        this.content = content;
+    }
+}
+
 [Generator]
 public class GlobalInputActionsSourceGenerator : IIncrementalGenerator
 {
-    const string kActionsAssetPath = "ProjectSettings//InputSystemActions.inputactions";
+    const string kTargetAssembly = "Unity.InputSystem";
+    const string kActionsFile = "actions.InputSystemActionsAPIGenerator.additionalfile";
+    const string kTemplateFile = "TemplateActions.InputSystemActionsAPIGenerator.additionalfile";
+    const string kUnityAdditionalFile = "UnityAdditionalFile.txt"; // Optional file, not to be relied upon
 
     public void Initialize(IncrementalGeneratorInitializationContext initContext)
     {
-        // Get the additional file paths
-        IncrementalValuesProvider<AdditionalText> additionalTexts = initContext.AdditionalTextsProvider;
-        IncrementalValuesProvider<string> transformed = additionalTexts.Select(static (text, _) => text.Path);
-        IncrementalValueProvider<ImmutableArray<string>> collected = transformed.Collect();
+        var assemblyName = initContext.CompilationProvider.Select(static (c, _) => c.AssemblyName);
 
-        initContext.RegisterSourceOutput(collected, static (sourceProductionContext, filePaths) =>
+        var additionalTexts = initContext.AdditionalTextsProvider;
+        var pathsAndContents = additionalTexts.Select((text, cancellationToken) => new PathAndContent(text.Path, text.GetText(cancellationToken)!.ToString()));
+        var combined = pathsAndContents.Collect().Combine(assemblyName);
+
+        initContext.RegisterSourceOutput(combined, static (spc, combinedPair) =>
         {
-            Execute(sourceProductionContext, filePaths);
+            // We only want to inject the new API into one location and not duplicate into every loaded assembly.
+            var assemblyName = combinedPair.Right;
+            if (assemblyName != kTargetAssembly)
+                return;
+
+            Execute(spc, combinedPair.Left);
         });
     }
 
-    static void Execute(SourceProductionContext context, ImmutableArray<string> additionalFilePaths)
+    static void Execute(SourceProductionContext context, ImmutableArray<PathAndContent> pathsAndContents)
     {
         try
         {
             context.CancellationToken.ThrowIfCancellationRequested();
+            var assetInfo = GetAssetContentAndPath(context, pathsAndContents);
 
-            var projectPath = GetProjectFilePath(context, additionalFilePaths);
-            var actionsAssetPath = Path.Combine(projectPath, kActionsAssetPath);
-            if (!File.Exists(actionsAssetPath))
-                return;
+            // If the asset file hasn't been created yet, then we fallback to the template (default) asset from the package
+            if (assetInfo == null)
+                assetInfo = GetDefaultAssetContentAndPath(context, pathsAndContents);
+
+            var asset = ParseInputActionsAsset(context, assetInfo.content, assetInfo.path);
 
             context.CancellationToken.ThrowIfCancellationRequested();
-            InputActionAsset asset = ParseInputActionsAsset(context, actionsAssetPath);
             var source = BuildActionAssetSource(asset);
 
             context.CancellationToken.ThrowIfCancellationRequested();
             context.AddSource($"InputSystemProjectActions.g.cs", SourceText.From(source, Encoding.UTF8));
-            File.WriteAllText(Path.Combine(projectPath, "temp//InputSystemProjectActionsSourceGenerator.g.cs"), source);
+
+            // Write file of generated source for debugging/inspection.
+            var projectPath = GetProjectFilePath(context, pathsAndContents);
+            if (!string.IsNullOrEmpty(projectPath))
+                File.WriteAllText(Path.Combine(projectPath, "temp//InputSystemActionsAPIGenerator.g.cs"), source);
         }
         catch (Exception exception)
         {
@@ -54,32 +80,81 @@ public class GlobalInputActionsSourceGenerator : IIncrementalGenerator
         }
     }
 
-    // First additional file should be "AdditionalFile.txt" and it's contents contains the project path
-    static string GetProjectFilePath(SourceProductionContext context, ImmutableArray<string> additionalFilePaths)
-    {
-        var firstAdditionalFilePath = additionalFilePaths.FirstOrDefault();
-        if (firstAdditionalFilePath == null)
-        {
-            // @TODO: Why additional paths are empty but only for the IDE?
-            return "/opt/UnitySrc/InputSystem/project-wide-actions-phase2";
-            // context.ReportDiagnostic(Diagnostic.Create(
-            //     new DiagnosticDescriptor("ISGEN001", "Additional files not specified.", "",
-            //         "InputSystemSourceGenerator", DiagnosticSeverity.Error, true,
-            //         "No additional files were specified."), null));
-            //
-            // throw new FileNotFoundException("Missing AdditionalFile.txt");
-        }
-
-        return File.ReadAllText(firstAdditionalFilePath);
-    }
-
-    static InputActionAsset ParseInputActionsAsset(SourceProductionContext context, string assetPath)
+    // The project path is written into the file "Unity.InputSystem.UnityAdditionalFile.txt"
+    // However the existence of this file is not guaranteed and the source generator should work
+    // even without it. Especially in IDE compilations it will be missing.
+    static string GetProjectFilePath(SourceProductionContext context, ImmutableArray<PathAndContent> pathsAndContents)
     {
         try
         {
-            using var fileStream = new FileStream(assetPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            var unityFile = FindAdditionalFileContentAndPath(context, pathsAndContents, kUnityAdditionalFile);
+            return unityFile.content;
+        }
+        catch
+        {
+            // ignored
+        }
+        return null;
+    }
+
+    // The asset is contained in the .additionalfile, which may be located anywhere in the User's Asset directory.
+    // For this generator to receive this file, it's name needs to match the case-sensitive pattern:
+    // actions.InputSystemActionsAPIGenerator.additionalfile
+    // where <InputSystemActionsAPIGenerator> is the name of this source generator's assembly.
+    static PathAndContent GetAssetContentAndPath(SourceProductionContext context, ImmutableArray<PathAndContent> pathsAndContents)
+    {
+        try
+        {
+            return FindAdditionalFileContentAndPath(context, pathsAndContents, kActionsFile);
+        }
+        catch
+        {
+            // ignored
+        }
+        return null;
+    }
+
+    // The asset is contained in the .additionalfile, which is a read-only file in the package.
+    // For this generator to receive this file, it's name needs to match the case-sensitive pattern:
+    // TemplateActions.InputSystemActionsAPIGenerator.additionalfile
+    // where <InputSystemActionsAPIGenerator> is the name of this source generator's assembly.
+    static PathAndContent GetDefaultAssetContentAndPath(SourceProductionContext context, ImmutableArray<PathAndContent> pathsAndContents)
+    {
+        try
+        {
+            return FindAdditionalFileContentAndPath(context, pathsAndContents, kTemplateFile);
+        }
+        catch
+        {
+            // This is fatal as we have no asset if even this fallback asset is unavailable.
+            context.ReportDiagnostic(Diagnostic.Create(
+                new DiagnosticDescriptor("ISGEN001", "", $"InputSystem Source Generator couldn't find template project wide actions asset .additionalfile.",
+                    "InputSystemSourceGenerator", DiagnosticSeverity.Error, true), null));
+
+            throw new FileNotFoundException("InputSystem is missing template project wide actions");
+        }
+    }
+
+    static PathAndContent FindAdditionalFileContentAndPath(
+        SourceProductionContext context,
+        ImmutableArray<PathAndContent> pathsAndContents,
+        string fileToFind)
+    {
+        foreach (var file in pathsAndContents)
+        {
+            if (!file.path.EndsWith(fileToFind))
+                continue;
+            return file;
+        }
+        throw new FileNotFoundException($"InputSystem Source Generator couldn't find additionalfile: {fileToFind}");
+    }
+
+    static InputActionAsset ParseInputActionsAsset(SourceProductionContext context, string jsonAsset, string assetPath)
+    {
+        try
+        {
             InputActionAsset inputActionAssetNullable = JsonSerializer.Deserialize<InputActionAsset>(
-                fileStream,
+                jsonAsset,
                 new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true,
@@ -98,9 +173,8 @@ public class GlobalInputActionsSourceGenerator : IIncrementalGenerator
                 throw;
 
             context.ReportDiagnostic(Diagnostic.Create(
-                new DiagnosticDescriptor("ISGEN002", "", $"Couldn't parse project input actions asset file: {assetPath}. " + exception.Message.ToString(),
-                    "InputSystemSourceGenerator",
-                    DiagnosticSeverity.Error, true), null));
+                new DiagnosticDescriptor("ISGEN002", "", $"InputSystem couldn't parse project input actions asset file: {assetPath}. " + exception.Message.ToString(),
+                    "InputSystemSourceGenerator", DiagnosticSeverity.Error, true), null));
 
             throw;
         }
