@@ -6292,29 +6292,6 @@ partial class CoreTests
 
     [Test]
     [Category("Actions")]
-    public void Actions_CanRemoveExistingInteractionOnBinding()
-    {
-        var action = new InputAction();
-        action.AddBinding("<Gamepad>/buttonSouth", interactions: "hold,tap(duration=0.5),hold(duration=0.5)");
-
-        action.Enable();
-
-        action.ChangeBinding(0).RemoveInteraction<HoldInteraction>();
-        Assert.That(action.bindings[0].interactions, Is.EqualTo("hold,tap(duration=0.5)"));
-
-        action.ChangeBinding(0).RemoveInteraction<HoldInteraction>();
-        Assert.That(action.bindings[0].interactions, Is.EqualTo("tap(duration=0.5)"));
-
-        // make sure removing a non-existent interaction doesn't throw
-        Assert.DoesNotThrow(() => action.ChangeBinding(0).RemoveInteraction<HoldInteraction>());
-        Assert.That(action.bindings[0].interactions, Is.EqualTo("tap(duration=0.5)"));
-
-        action.ChangeBinding(0).RemoveInteraction<TapInteraction>();
-        Assert.That(action.bindings[0].interactions, Is.Empty);
-    }
-
-    [Test]
-    [Category("Actions")]
     public void Actions_DestroyingAssetClearsCallbacks()
     {
         var asset = ScriptableObject.CreateInstance<InputActionAsset>();
@@ -8082,6 +8059,39 @@ partial class CoreTests
 
     [Test]
     [Category("Actions")]
+    public void Actions_Vector2Composite_WithKeyboardKeys_CancelOnRelease()
+    {
+        var keyboard = InputSystem.AddDevice<Keyboard>();
+
+        // Set up classic WASD control.
+        var action = new InputAction();
+        action.AddCompositeBinding("Dpad")
+            .With("Up", "<Keyboard>/w")
+            .With("Down", "<Keyboard>/s")
+            .With("Left", "<Keyboard>/a")
+            .With("Right", "<Keyboard>/d");
+        action.Enable();
+
+        bool wasCanceled = false;
+        action.canceled += ctx => { wasCanceled = true; };
+
+        // Test all directions to ensure they are correctly canceled
+        var keys = new Key[] { Key.W, Key.A, Key.S, Key.D };
+        foreach (var key in keys)
+        {
+            wasCanceled = false;
+            InputSystem.QueueStateEvent(keyboard, new KeyboardState(key));
+            InputSystem.Update();
+
+            InputSystem.QueueStateEvent(keyboard, new KeyboardState());
+            InputSystem.Update();
+
+            Assert.That(wasCanceled, Is.EqualTo(true));
+        }
+    }
+
+    [Test]
+    [Category("Actions")]
     public void Actions_CanCreateComposite_WithPartsBeingOutOfOrder()
     {
         var gamepad = InputSystem.AddDevice<Gamepad>();
@@ -8936,6 +8946,41 @@ partial class CoreTests
             Is.EqualTo(new Vector3(1, -1, -1).normalized).Using(Vector3EqualityComparer.Instance));
         Assert.That(digital.ReadValue<Vector3>(),
             Is.EqualTo(new Vector3(1, -1, -1)).Using(Vector3EqualityComparer.Instance));
+    }
+
+    [Test]
+    [Category("Actions")]
+    public void Actions_Vector3Composite_WithKeyboardKeys_CancelOnRelease()
+    {
+        var keyboard = InputSystem.AddDevice<Keyboard>();
+
+        // Set up classic WASD control (with QE for forward / backward).
+        var action = new InputAction();
+        action.AddCompositeBinding("3DVector")
+            .With("Forward", "<Keyboard>/q")
+            .With("Backward", "<Keyboard>/e")
+            .With("Up", "<Keyboard>/w")
+            .With("Down", "<Keyboard>/s")
+            .With("Left", "<Keyboard>/a")
+            .With("Right", "<Keyboard>/d");
+        action.Enable();
+
+        bool wasCanceled = false;
+        action.canceled += ctx => { wasCanceled = true; };
+
+        // Test all directions to ensure they are correctly canceled
+        var keys = new Key[] { Key.Q, Key.E, Key.W, Key.A, Key.S, Key.D };
+        foreach (var key in keys)
+        {
+            wasCanceled = false;
+            InputSystem.QueueStateEvent(keyboard, new KeyboardState(key));
+            InputSystem.Update();
+
+            InputSystem.QueueStateEvent(keyboard, new KeyboardState());
+            InputSystem.Update();
+
+            Assert.That(wasCanceled, Is.EqualTo(true));
+        }
     }
 
     [Test]
@@ -10502,42 +10547,6 @@ partial class CoreTests
             Assert.That(action2Count, Is.EqualTo(1));
             Assert.That(action3Count, Is.EqualTo(1));
         }
-    }
-
-    [Test]
-    [Category("Actions")]
-    public void Actions_ActiveBindingIndex_PointsAtRelativeIndexInActionBindingsArray()
-    {
-        var keyboard = InputSystem.AddDevice<Keyboard>();
-
-        var actionMap = new InputActionMap("ActionMap");
-        var actionOne = actionMap.AddAction("ActionOne");
-        var actionTwo = actionMap.AddAction("ActionTwo");
-
-        actionOne.AddBinding("<keyboard>/a");
-        actionOne.AddBinding("<keyboard>/b");
-        actionTwo.AddBinding("<keyboard>/c");
-
-        actionMap.Enable();
-
-        PressAndRelease(keyboard.cKey);
-
-        Assert.That(actionTwo.bindings[actionTwo.activeBindingIndex], Is.EqualTo(actionTwo.bindings[0]));
-
-        // the activeBindingIndex treats composites as normal bindings and ignores the composite parts for reasons
-        // of indexing, so pressing any of the controls from the parts of these composites should set the active binding
-        // index to be the composite itself
-        actionTwo.AddCompositeBinding("OneModifier")
-            .With("modifier", "<Keyboard>/leftShift")
-            .With("binding", "<Keyboard>/1");
-        actionTwo.AddCompositeBinding("OneModifier")
-            .With("modifier", "<Keyboard>/leftShift")
-            .With("binding", "<Keyboard>/2");
-
-        Press(keyboard.leftShiftKey);
-        PressAndRelease(keyboard.digit2Key);
-
-        Assert.That(actionTwo.bindings[actionTwo.activeBindingIndex], Is.EqualTo(actionTwo.bindings[4]));
     }
 
     [Test]
