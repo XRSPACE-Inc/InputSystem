@@ -5,13 +5,14 @@ uid: input-system-input-actions-editor
 
 The **Input Actions Editor** allows you to configure [Input Actions](Actions.md) and their associated [Bindings](ActionBindings.md) and [Control Schemes](ActionBindings.md#control-schemes).
 
-Open the Input Actions editor by going to **Edit** > **Project Settings** > **Input System Package** > **Input Actions**
+Open the Input Actions settings by going to **Edit** > **Project Settings** > **Input System Package** > **Input Actions**
 
 ![image alt text](./Images/ProjectSettingsInputActions.png)
-*The Input Actions panel in the Project Settings window*
+*The Input Actions editor in the Project Settings window*
 
+>__Note__: For details about how Action Maps, Actions, and Bindings work, see [Actions](Actions.md).
 
->__Note__: For details about how Action Maps, Actions, and Bindings work, see documentation on [Actions](Actions.md).
+>__Also Note__: If you double-click an Input Actions Asset in the Project window, The Input Actions Editor opens in a separate window.
 
 The Input Action editor is divided into three panes:
 
@@ -128,7 +129,5 @@ The [Player Input](PlayerInput.md) component provides a convenient way to handle
 ![PlayerInput](Images/PlayerInput.png)
 
 ### Modifying Input Action Assets at runtime
-
-MAYBE NOT (for project wide actions)!
 
 There are several ways to modify an Input Action Asset at runtime. Any modifications that you make during Play mode to an Input Action Asset do not persist in the Input Action Asset after you exit Play mode. This means you can test your application in a realistic manner in the Editor without having to worry about inadvertently modifying the asset. For examples on how to modify an Input Action Asset, see the documentation on [Creating Actions in code](Actions.md#creating-actions-in-code) and [Changing Bindings](ActionBindings.md#changing-bindings).

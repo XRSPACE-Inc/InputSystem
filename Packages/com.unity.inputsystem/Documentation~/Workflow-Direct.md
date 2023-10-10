@@ -3,9 +3,7 @@ uid: input-system-workflow-direct
 ---
 # Workflow Overview - Directly Reading Device States
 
-![image alt text](./Images/Workflow-Direct.svg)
-
-This is the simplest and most direct workflow, but the least flexible. It’s useful if you want a quick implementation with one type of device. It might not be the best choice if you want to provide your users with multiple types of input or if you want to target multiple platforms.
+This is the simplest and most direct input workflow, but the least flexible. It’s useful if you want a quick implementation with one type of device. It might not be the best choice if you want to provide your users with multiple types of input or if you want to target multiple platforms.
 
 You can directly read the values from connected devices by referring to the device’s [controls](Controls.html) and reading the values they are currently generating, using code like this:
 
