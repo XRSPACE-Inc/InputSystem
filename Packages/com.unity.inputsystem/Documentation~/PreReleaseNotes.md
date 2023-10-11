@@ -2,9 +2,7 @@
 
 ## Overview
 
-This pre-release contains updates to the Input System which simplifies and improves some of the main workflows compared with earlier versions of the Input System package.
-
-Because this is a pre-release, the rest of the documentation included with this version of the package has not yet been updated to reflect these changes. The documentation on this page explains the improvements and differences between these new features, and the previous version of the input system package. The improvements are as follows:
+This pre-release contains updates to the Input System which simplifies and improves some of the main workflows compared with earlier versions of the Input System package. This page describes the main differences introduced.
 
 **New project-wide actions**
 
@@ -14,8 +12,9 @@ The Input System now allows you to configure actions in the Project Settings win
 
 The new project-wide actions come pre-loaded with some default action maps that contain actions suitable for many typical game scenarios, including basic player character controls, and typical UI interactions. In many cases these are enough to allow you to immediately start using input in your project with no configuration required. You are free to either add to, edit, or delete these default configurations to suit your needs.
 
+**New automatic API generation**
 
-**Note**: The new features in this pre-release are **only documented on this page**. When reading the rest of the documentation in this package, please remember that it *will not mention these features*. So, for example, when another page in the documentation discusses **action assets**, or creating a reference to your action asset, you can in many cases use project-wide actions instead, as described on this page.
+There is now an automatically generated class, `InputActions`, which contains API methods and properties that match the Action Map and Action names defined in the Input Settings. This means if you create an action named "Emote", in the action map named "Player", you can use the API `InputActions.Player.Emote` directly in your scripts instead of referencing them using a string name. These allow you to either poll the current state of the action, or set up a callback to call your own method when actions are performed.
 
 ## Project-wide actions and default actions
 
@@ -23,7 +22,7 @@ Project-wide actions are similar to the actions you would previously define in a
 
 Compared with the previous workflow of creating an Action asset, and setting up a reference to that asset to access in your code, project-wide actions reduce the number of steps to set up input in your project, and reduces complexity in your project.
 
-![The Input Actions settings panel in the Project Settings window, showing the default player actions.](images/ProjectSettingsInputActions.png)<br/>
+![The Input Actions settings panel in the Project Settings window, showing the default player actions.](images/ProjectSettingsInputActionsSimpleShot.png)<br/>
 *The Input Actions settings panel in the Project Settings window, showing the default player actions.*
 
 The project-wide actions feature has some default action maps set up, which you can add to, modify or delete. They are actions which are useful in typical games, such as moving a player character with WSAD keys or a Joypad stick, pressing a button to jump or interact, as well as common UI controls such as pointing, submitting, or canceling within a user interface.
@@ -34,7 +33,7 @@ The project-wide actions feature has some default action maps set up, which you 
 
 You can access the project-wide actions in your script by using the [InputSystem.actions](../api/UnityEngine.InputSystem.InputSystem.html#UnityEngine_InputSystem_InputSystem_actions) property. For example:
 
-    var myAction = InputSystem.actions.FindAction("Player/Jump");
+    var myAction = InputSystem.actions.Player.Jump;
 
 The above line of code reads the "Jump" action, from the “Player” action map, which is one of the default actions that comes with the new project-wide actions feature.
 

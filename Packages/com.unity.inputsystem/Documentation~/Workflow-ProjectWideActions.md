@@ -3,24 +3,22 @@ uid: input-system-workflow-project-wide-actions
 ---
 # Workflow Overview - Project Wide Actions
 
-While the Input System has a variety of workflows to choose from, the primary recommended workflow for using the Input System is to use the [**Input Actions** editor](InputActionsEditor.md) in the **Project Settings window** to configure your project-wide Actions and Bindings, and then read the values for those actions in your code using the `InputActions` class.
-
-**Note**: *Previous versions of the input package used a different workflow which required creating an "Input Action Asset". While that is still possible, it is no longer necessary because you can define actions in the Project settings window and access them directly from your scripts.*
+While the Input System has a variety of workflows to choose from, the primary recommended workflow for using the Input System is to configure Actions in the [**Input Actions** editor](ActionsEditor.md), then read the values for those actions in your code using the `InputActions` class.
 
 Open the Input Actions editor by going to **Edit** > **Project Settings** > **Input System Package** > **Input Actions**
 
-![image alt text](./Images/ProjectSettingsInputActions.png)
+![image alt text](./Images/ProjectSettingsInputActionsSimpleShot.png)
 *The Input Actions editor in the Project Settings window*
 
 The Input Actions editor provides a way to define and manage Action Maps, Actions, and Action Properties which relate to what you want users to be able to do in your game or app.
 
-[**Actions**](Actions.md) are high level concepts that describe individual things that a user might want to do - such as move, look, or jump within a game, or navigate an on-screen UI.
+[**Actions**](Actions.md) are high-level concepts that describe individual things that a user might want to do in your game or app - such as "move", "look", or "jump" within a game, or "select" and "cancel" for an on-screen UI.
 
-[**Action Maps**](ActionAssets.html#editing-action-maps) are a way to organise Actions into logical groups, which represent specific situations in which a set of actions make sense. For example, your game might involve driving vehicles and navigating on foot, and may have in-game menus. In this example, it would make sense to have three different action maps for each of these three situations, and your game code would switch between them as appropriate. The actions grouped into the "driving" action map might be called "steer", "accelerate", "brake", "handbrake", etc, whereas the actions grouped into the "on foot" action map might be "move", "jump", "crouch", "use", etc.
+[**Action Maps**](ActionAssets.html#editing-action-maps) organise Actions into groups which represent specific situations where a set of actions make sense together. For example, your game might involve driving vehicles and navigating on foot, and it might have in-game menus. In this case, you might have three action maps named "driving", "walking", and "menus", each containing a separate set of action definitions.
 
 **Action Properties** define tye type of input that relates to the action, such as whether it is a button, or an axis.
 
-[**Control Schemes**](ActionAssets.html#editing-control-schemes) refer to particular modes of input, such as "Joypad" or "Keyboard and Mouse". You can specify which bindings belong to particular control schemes. You might have one control scheme which is "Joypad", and another control scheme which is "Keyboard and Mouse". This allows you to determine which control scheme the user is currently using, so your game can respond to the user accordingly. This feature is often used to adapt the in-game UI to show the correct keys or buttons in on-screen prompts.
+[**Control Schemes**](ActionsEditor.html#editing-control-schemes) refer to particular modes of input, such as "Joypad" or "Keyboard and Mouse". You can specify which bindings belong to particular control schemes. You might have one control scheme which is "Joypad", and another control scheme which is "Keyboard and Mouse". This allows you to determine which control scheme the user is currently using, so your game can respond to the user accordingly. This feature is often used to adapt the in-game UI to show the correct keys or buttons in on-screen prompts.
 
 The Input Actions editor allows you to create Actions, and then bind them to one or more types of control on various devices, such as a stick on a gamepad, a key on a keyboard, or a button on an XR controller.
 
@@ -152,7 +150,7 @@ public class DocsExampleActionsAssetCsWrapper : MonoBehaviour
 
 Whether you use the C# wrapper option, or the inspector reference option, using an Action Asset like this gives you the ability to organize and edit your actions in the Actions Window. It is more flexible than using [embedded actions](Workflow-Embedded.html), and [directly reading device states](Workflow-Direct.html), and is generally a good solution for many projects. However, you can also add one more step of abstraction using the [Player Input component](Workflow-PlayerInput.html), to set up calls to methods based on your Action definitions.
 
->[!Note]
+> **Note:**
 >Because Action Assets can be used in these two different ways (by reference, or by C# wrapper), the code samples used throughout this documentation also vary in which way they are written. Some code samples might use a reference and strings to identify actions, and others might use the C# wrapper method.
 
 See also:

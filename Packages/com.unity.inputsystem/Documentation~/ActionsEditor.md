@@ -1,7 +1,7 @@
 ---
-uid: input-system-input-actions-editor
+uid: input-system-configuring-input
 ---
-# The Input Action Editor
+# Configuring Input
 
 The **Input Actions Editor** allows you to configure [Input Actions](Actions.md) and their associated [Bindings](ActionBindings.md) and [Control Schemes](ActionBindings.md#control-schemes).
 
@@ -10,30 +10,26 @@ Open the Input Actions settings by going to **Edit** > **Project Settings** > **
 ![image alt text](./Images/ProjectSettingsInputActions.png)
 *The Input Actions editor in the Project Settings window*
 
->__Note__: For details about how Action Maps, Actions, and Bindings work, see [Actions](Actions.md).
 
->__Also Note__: If you double-click an Input Actions Asset in the Project window, The Input Actions Editor opens in a separate window.
 
-The Input Action editor is divided into three panes:
+The Input Action editor is divided into three panels (marked A, B & C above).
 
 |Name|Description|
 |-|-|
-|**Action Maps**.|Displays the list of currently defined Action Maps. Each Action Map is a collection of Actions that you can enable or disable together as a group.|
-|**Actions**|Displays all the actions defined in the currently selected Action Map, and the bindings associated with each Action.|
-|**Properties**|Displays the properties of the currently selected Action or Binding from the Actions pane. The title of this pane changes depending on whether you have an Action or a Binding selected in the Actions pane.|
+|**A: Action Maps**|Displays the list of currently defined Action Maps. Each Action Map is a collection of Actions that you can enable or disable together as a group.|
+|**B: Actions**|Displays all the actions defined in the currently selected Action Map, and the bindings associated with each Action.|
+|**C: Properties**|Displays the properties of the currently selected Action or Binding from the Actions panel. The title of this panel changes depending on whether you have an Action or a Binding selected in the Actions panel.|
 
-### Editing Action Maps
+### Configure Action Maps
 
-![Action Maps Column](Images/ActionMapsColumn.png)
 
-* To add a new Action Map, select the Add (+) icon in the header of the Action Map pane.
+
+* To add a new Action Map, select the Add (+) icon in the header of the Action Map panel.
 * To rename an existing Action Map, either long-click the name, or right-click the Action Map and select __Rename__ from the context menu. Note that Action Map names can't contain slashes  (`/`).
 * To delete an existing Action Map, right-click it and select __Delete__ from the context menu.
 * To duplicate an existing Action Map, right-click it and select __Duplicate__ from the context menu.
 
 ### Editing Actions
-
-![Action Column](Images/ActionColumn.png)
 
 * To add a new Action, select the Add (+) icon in the header of the Action column.
 * To rename an existing Action, either long-click the name, or right-click the Action Map and select __Rename__ from the context menu.

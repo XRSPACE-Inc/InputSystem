@@ -1,5 +1,5 @@
 
-# Quick Start Guide
+# Quickstart Guide
 
 **Note**: For information on how to install the new Input System, see [Installation](Installation).
 
