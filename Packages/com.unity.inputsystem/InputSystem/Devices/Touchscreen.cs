@@ -626,6 +626,15 @@ namespace UnityEngine.InputSystem
                 //       tap must have ended.
                 if (touchStatePtr->tapCount > 0 && InputState.currentTime >= touchStatePtr->startTime + s_TapTime + s_TapDelayTime)
                     InputState.Change(touches[i].tapCount, (byte)0);
+
+#if FLUTTER
+                // Reset phase state
+                // On Flutter, there is chance to missing touch end event. And then whole input would hang.
+                // Unless unity fix the missing event, we have a workaround here which is reset touch status
+                // to "TouchPhase.Ended" after a short time.
+                if (touchStatePtr->isInProgress && InputState.currentTime >= touchStatePtr->startTime + s_TapTime + s_TapDelayTime)
+                    InputState.Change(touches[i].phase, (byte)TouchPhase.Ended);
+#endif
             }
 
             var primaryTouchState = (TouchState*)((byte*)statePtr + stateBlock.byteOffset);
@@ -633,6 +642,10 @@ namespace UnityEngine.InputSystem
                 InputState.Change(primaryTouch.delta, Vector2.zero);
             if (primaryTouchState->tapCount > 0 && InputState.currentTime >= primaryTouchState->startTime + s_TapTime + s_TapDelayTime)
                 InputState.Change(primaryTouch.tapCount, (byte)0);
+#if FLUTTER
+            if (primaryTouchState->isInProgress && InputState.currentTime >= primaryTouchState->startTime + s_TapTime + s_TapDelayTime)
+                InputState.Change(primaryTouch.phase, (byte)TouchPhase.Ended);
+#endif
 
             Profiler.EndSample();
         }
